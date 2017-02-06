@@ -10,13 +10,13 @@ class SLClientEngine extends ClientEngine {
     constructor(gameEngine, options) {
         super(gameEngine, options, SLRenderer);
 
-        // TODO: 1. shouldn't be necessary to register ThreeVector and FourVector
+        // TODO: 1. shouldn't be necessary to register ThreeVector and Quternion
         // TODO: 2. on the original sumo I registered the classes in the gameEngine
         //          instead of doing it twice (clientEngine and serverEngine)
         this.serializer.registerClass(require('../common/Car'));
         this.serializer.registerClass(require('../common/SumoRing'));
         this.serializer.registerClass(require('incheon').serialize.ThreeVector);
-        this.serializer.registerClass(require('incheon').serialize.FourVector);
+        this.serializer.registerClass(require('incheon').serialize.Quaternion);
 
         this.gameEngine.on('client__preStep', this.preStep, this);
     }

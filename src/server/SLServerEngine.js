@@ -8,7 +8,7 @@ class SLServerEngine extends ServerEngine {
         this.serializer.registerClass(require('../common/Car'));
         this.serializer.registerClass(require('../common/SumoRing'));
         this.serializer.registerClass(require('incheon').serialize.ThreeVector);
-        this.serializer.registerClass(require('incheon').serialize.FourVector);
+        this.serializer.registerClass(require('incheon').serialize.Quaternion);
     }
 }
 
