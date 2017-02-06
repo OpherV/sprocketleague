@@ -1,0 +1,44 @@
+{
+  "name": "SprocketLeague",
+  "version": "1.0.0",
+  "engines": {
+    "node": "4.3.0"
+  },
+  "description": "A sample 3D multiplayer using on Incheon",
+  "main": "main.js",
+  "dependencies": {
+    "browserify": "^13.0.1",
+    "eventemitter3": "^1.2.0",
+    "express": "^4.14.0",
+    "incheon": "Opherv/Incheon.git",
+    "query-string": "^4.2.3",
+    "socket.io": "^1.4.8",
+    "three": "^0.84.0"
+  },
+  "devDependencies": {
+    "babelify": "^7.3.0",
+    "eslint": "^3.14.1",
+    "eslint-config-google": "^0.7.1",
+    "watchify": "^3.9.0"
+  },
+  "scripts": {
+    "start": "node main.js",
+    "build": "browserify src/client/clientMain.js -o dist/bundle.js -t [ babelify --presets [ es2015 ]",
+    "watch": "watchify src/client/clientMain.js -o dist/bundle.js -v -d -t [ babelify --presets [ es2015 ]",
+    "postinstall": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/namel/sumo.git"
+  },
+  "keywords": [
+    "game",
+    "websockets"
+  ],
+  "author": "Opher Vishnia",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/opherv/sprocketleague/issues"
+  },
+  "homepage": "https://github.com/opherv/sprocketleague#readme"
+}
