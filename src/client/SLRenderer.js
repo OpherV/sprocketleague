@@ -1,12 +1,15 @@
 'use strict';
 
 const Renderer = require('incheon').render.Renderer;
-const THREE = global.THREE = require('three');
+const THREE = window.THREE = require('three');
+const TWEEN = require('tween');
 
 // todo switch from browserify so we could require this
-// const OBJLoader =
+// const OBJLoader = require('../../node_modules/three/src/loaders/ObjectLoader');
 
-const DEBUG__SHOW_CANNON_FRAMES = true;
+const OrbitControls = require('../../node_modules/three/examples/js/controls/OrbitControls');
+
+const DEBUG__SHOW_CANNON_FRAMES = false;
 
 class SLRenderer extends Renderer {
 
@@ -36,6 +39,12 @@ class SLRenderer extends Renderer {
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         this.scene.add(this.camera);
 
+        this.roamingCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.roamingCamera.up = new THREE.Vector3(0, 1, 0);
+        this.scene.add(this.roamingCamera);
+
+        this.currentCamera = this.roamingCamera;
+
         // setup light
         this.scene.add(new THREE.AmbientLight(0x606060));
         this.pointLight = new THREE.PointLight(0xffffff, 2, 100);
@@ -46,7 +55,7 @@ class SLRenderer extends Renderer {
         this.pointLight.shadow.camera.far = 100;
         this.pointLight.shadow.bias = 0.01;
         this.scene.add(this.pointLight);
-
+        
         // setup the renderer and add the canvas to the body
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -55,10 +64,34 @@ class SLRenderer extends Renderer {
         this.renderer.shadowMap.type = THREE.BasicShadowMap;
         document.getElementById('viewport').appendChild(this.renderer.domElement);
 
+
+        // controls
+
+        this.cameraControls = new THREE.OrbitControls( this.roamingCamera );
+        // this.cameraControls.userPan = false;
+
         this.objLoader = new THREE.OBJLoader();
 
         // a local raycaster
         this.raycaster = new THREE.Raycaster();
+
+
+        // setup events for camera
+        this.on("ready", () => {
+            let onDocumentMouseDown  = ( event ) => {
+                event.preventDefault();
+                this.lookAround = true;
+                this.cameraControls.center.copy( this.playerCar.position );
+                document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+            };
+
+            let onDocumentMouseUp = ( event ) => {
+                this.lookAround = false;
+                document.removeEventListener( 'mouseup', onDocumentMouseUp );
+            };
+
+            document.addEventListener( 'mousedown', onDocumentMouseDown, false )
+        });
 
         return new Promise((resolve, reject) => {
 
@@ -107,7 +140,26 @@ class SLRenderer extends Renderer {
     // single step
     draw() {
         super.draw();
-        this.renderer.render(this.scene, this.camera);
+        
+        if (this.currentCamera === this.roamingCamera && this.playerCar){
+            TWEEN.update();
+            this.cameraControls.update();
+
+            let relativeCameraOffset = new THREE.Vector3( 0, 35, -100 );
+            let cameraOffset = relativeCameraOffset.applyMatrix4( this.playerCar.matrixWorld );
+            // Camera TWEEN.
+            if (!this.lookAround) {
+                new TWEEN.Tween( this.roamingCamera.position ).to( {
+                    x: cameraOffset.x,
+                    y: cameraOffset.y,
+                    z: cameraOffset.z }, 90 )
+                    .interpolation( TWEEN.Interpolation.Bezier )
+                    .easing( TWEEN.Easing.Sinusoidal.InOut ).start();
+                this.roamingCamera.lookAt( this.playerCar.position );
+            }
+        }
+
+        this.renderer.render(this.scene, this.currentCamera);
         if (this.cannonDebugRenderer)
             this.cannonDebugRenderer.update();
     }
@@ -120,7 +172,7 @@ class SLRenderer extends Renderer {
         return this.state / (m - 1);
     }
 
-    // add one object: a single sphere
+    // add a player's car
     addCar(id, position, radius) {
 
         // generate a color which is random but not dark
@@ -137,6 +189,11 @@ class SLRenderer extends Renderer {
         // });
 
         let renderObj = new THREE.Object3D();
+
+        //keep a reference to the player car 
+        if (this.gameEngine.world.objects[id].playerId == this.clientEngine.playerId){
+            this.playerCar = renderObj;
+        }
 
         this.objLoader.load( 'resources/models/modelt.obj', function ( object ) {
 
@@ -156,23 +213,6 @@ class SLRenderer extends Renderer {
         renderObj.position.copy(position);
         this.scene.add(renderObj);
         return renderObj;
-    }
-
-    addSumoRing(position, radiusTop, radiusBottom, height, radiusSegments) {
-        // setup floor
-        let floorMaterial = new THREE.MeshPhongMaterial({
-            color: 0xde761a,
-            wireframe: false,
-            shininess: 30
-        });
-        this.floor = new THREE.Mesh(
-            new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radiusSegments),
-            floorMaterial);
-        this.floor.position.copy(position);
-        this.floor.receiveShadow = true;
-        this.scene.add(this.floor);
-
-        return this.floor;
     }
 
     addSumoBox(position, x, y, z) {

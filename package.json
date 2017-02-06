@@ -13,7 +13,8 @@
     "incheon": "Opherv/Incheon.git",
     "query-string": "^4.2.3",
     "socket.io": "^1.4.8",
-    "three": "^0.84.0"
+    "three": "^0.84.0",
+    "tween": "^0.9.0"
   },
   "devDependencies": {
     "babelify": "^7.3.0",
@@ -23,8 +24,8 @@
   },
   "scripts": {
     "start": "node main.js",
-    "build": "browserify src/client/clientMain.js -o dist/bundle.js -t [ babelify --presets [ es2015 ]",
-    "watch": "watchify src/client/clientMain.js -o dist/bundle.js -v -d -t [ babelify --presets [ es2015 ]",
+    "build": "browserify src/client/clientMain.js -o dist/bundle.js -t [ babelify --presets [ es2015 ]]",
+    "watch": "watchify src/client/clientMain.js -o dist/bundle.js -v -d -t [ babelify --presets [ es2015 ]]",
     "postinstall": "npm run build"
   },
   "repository": {
