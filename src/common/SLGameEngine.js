@@ -71,6 +71,7 @@ class SLGameEngine extends GameEngine {
 
     // server-side function to add a new player
     makeCar(player) {
+        console.log(`adding car of player`, player);
 
         // create a fighter for this client
         let position = new ThreeVector(0, 25, 0);
@@ -82,6 +83,7 @@ class SLGameEngine extends GameEngine {
     }
 
     removeCar(player) {
+        console.log(`removing car of player`, player);
         let o = this.world.getPlayerObject(player.playerId);
         this.removeObjectFromWorld(o.id);
     }
@@ -100,8 +102,8 @@ class SLGameEngine extends GameEngine {
         if (playerCar){
             if (inputData.input == 'up') {
                 //todo probably bad perf
-                let newVec = playerCar.physicsObj.quaternion.vmult(new CANNON.Vec3(1,0,0));
-                console.log(newVec);
+                let newVec = playerCar.physicsObj.quaternion.vmult(new CANNON.Vec3(0,0,1));
+                // console.log(newVec);
                 playerCar.physicsObj.velocity.vadd(newVec, playerCar.physicsObj.velocity);
             } else if (inputData.input === 'right') {
                 this.mRight.vmult(playerCar.physicsObj.velocity, playerCar.physicsObj.velocity);

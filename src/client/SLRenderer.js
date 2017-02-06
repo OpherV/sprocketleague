@@ -1,9 +1,12 @@
 'use strict';
 
 const Renderer = require('incheon').render.Renderer;
-const THREE = require('three');
+const THREE = global.THREE = require('three');
 
-const DEBUG__SHOW_CANNON_FRAMES = false;
+// todo switch from browserify so we could require this
+// const OBJLoader =
+
+const DEBUG__SHOW_CANNON_FRAMES = true;
 
 class SLRenderer extends Renderer {
 
@@ -51,6 +54,8 @@ class SLRenderer extends Renderer {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.BasicShadowMap;
         document.getElementById('viewport').appendChild(this.renderer.domElement);
+
+        this.objLoader = new THREE.OBJLoader();
 
         // a local raycaster
         this.raycaster = new THREE.Raycaster();
@@ -125,18 +130,32 @@ class SLRenderer extends Renderer {
         let objColor = new THREE.Color(r, g, b);
 
         // create the visual object
-        let sphereGeometry = new THREE.BoxGeometry(20, 20, 40);
-        let sphereMaterial = new THREE.MeshPhongMaterial({
-            color: objColor,
-            wireframe: false,
-            shininess: 10
+        // let sphereMaterial = new THREE.MeshPhongMaterial({
+        //     color: objColor,
+        //     wireframe: false,
+        //     shininess: 10
+        // });
+
+        let renderObj = new THREE.Object3D();
+
+        this.objLoader.load( 'resources/models/modelt.obj', function ( object ) {
+
+            object.traverse( child => {
+                if ( child instanceof THREE.Mesh ) {
+                    child.material.color = objColor;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            } );
+
+            object.scale.set(7.7,7.7,7.7);
+            renderObj.add(object);
         });
-        let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere.castShadow = true;
-        sphere.receiveShadow = true;
-        sphere.position.copy(position);
-        this.scene.add(sphere);
-        return sphere;
+
+
+        renderObj.position.copy(position);
+        this.scene.add(renderObj);
+        return renderObj;
     }
 
     addSumoRing(position, radiusTop, radiusBottom, height, radiusSegments) {
